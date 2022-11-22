@@ -11,14 +11,14 @@ const app = new cdk.App();
 //   version: eks.KubernetesVersion.V1_21,
 //   clusterName: "uzcatm-cluster",
 //   env: {
-//     'account': "633725053664",
+//     'account': "XXXXX",
 //     'region': "us-east-1"
 //   }
 // });
 
 new BastionStack(app, 'BastionInstance', {
   env: {
-    'account': "633725053664",
+    'account': "XXXXXX",
     'region': "us-east-1"
   }
 });
