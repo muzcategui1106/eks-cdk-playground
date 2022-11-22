@@ -66,8 +66,10 @@ export class CdkEksFargateStack extends cdk.Stack {
     });
 
     // manage security groups for cluster and workers
+    // remove the ingress security rule for port 443. only there for experimentation
+    cluster.clusterSecurityGroup.addIngressRule(ec2.Peer.ipv4(cluster.vpc.vpcCidrBlock), ec2.Port.tcp(443), "connectivity from other things running in the cluster")
     cluster.clusterSecurityGroup.addEgressRule(ec2.Peer.ipv4(cluster.vpc.vpcCidrBlock), ec2.Port.tcp(443), "connectivity to services running in port 443")
-    cluster.clusterSecurityGroup.addIngressRule(ec2.Peer.ipv4(cluster.vpc.vpcCidrBlock), ec2.Port.tcp(53), "dns connectivity tcp")
+    cluster.clusterSecurityGroup.addEgressRule(ec2.Peer.ipv4(cluster.vpc.vpcCidrBlock), ec2.Port.tcp(53), "dns connectivity tcp")
     const workersSecuirityGroup = new ec2.SecurityGroup(this, "WorkersSG", {
       vpc: vpc,
       description: "base security group for all workers in the kubernetes cluster",
