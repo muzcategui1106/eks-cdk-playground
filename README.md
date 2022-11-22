@@ -1,8 +1,6 @@
-# Welcome to your CDK TypeScript project
+# EKS playground
 
-This is a blank project for CDK development with TypeScript.
-
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+TBD overview
 
 ## Useful commands
 
@@ -12,3 +10,25 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 * `cdk deploy`      deploy this stack to your default AWS account/region
 * `cdk diff`        compare deployed stack with current state
 * `cdk synth`       emits the synthesized CloudFormation template
+
+
+# Prerequisites
+
+* Create  VPC in us-east-1
+* create three private subnets
+* Remove any internet or NAT gateway associated with the VPC
+* Create the following VPC endpoints with the default security group of the VPC
+    * ec2
+    * lambda
+    * sts
+    * cloud formation
+    * ssm
+    * ssm-messages
+    * ssm-ec2-messages
+    * emr containers
+    * s3 (gateway)
+    * ecr.api
+    * ecr.dkr
+    * logs
+* Remove inboud rule from default security group of the VPC otherwise EKS cluster wont be able to talk to vpc endpoints
+    * add Inbound rule from anywhere within the VPC for port 443
