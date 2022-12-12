@@ -13,10 +13,12 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 import * as cdk from 'aws-cdk-lib';
+import { Action } from 'aws-cdk-lib/aws-codepipeline';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as eks from 'aws-cdk-lib/aws-eks';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { CfnClusterSecurityGroup } from 'aws-cdk-lib/aws-redshift';
+import { read } from 'fs';
+import { isContext } from 'vm';
 
 export interface CdkEksFargateStackProps extends cdk.StackProps {
   version: eks.KubernetesVersion;
@@ -119,7 +121,7 @@ export class CdkEksFargateStack extends cdk.Stack {
     const fargatePodExecutionRole = new iam.Role(this, "AmazonEKSFargatePodExecutionRole", {
       roleName: "AmazonEKSFargatePodExecutionRole",
       assumedBy: new iam.PrincipalWithConditions(new iam.ServicePrincipal("eks-fargate-pods.amazonaws.com"),
-      {"ArnLike": {"aws:SourceArn": `arn:aws:eks:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:fargateprofile/*`}}),
+        { "ArnLike": { "aws:SourceArn": `arn:aws:eks:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:fargateprofile/*` } }),
       inlinePolicies: {
         AmazonEKSForFargateServiceRolePolicy: new iam.PolicyDocument({
           statements: [AmazonEKSForFargateServiceRolePolicy, FargateLoggingStatement]
@@ -141,8 +143,46 @@ export class CdkEksFargateStack extends cdk.Stack {
       maxCapacity: 100,
       vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_ISOLATED },
     })
-
-
-
   }
+
 }
+
+function addBastionHosts(stack: cdk.Stack, cluster: eks.ICluster, awsAuth: eks.AwsAuth) {
+  const readOnlyHost = new ec2.BastionHostLinux(stack, 'BastionReadOnly', {
+    vpc: cluster.vpc,
+    blockDevices: [{
+      deviceName: cluster.clusterName + "read-only-bastion",
+      volume: ec2.BlockDeviceVolume.ebs(10, {
+        encrypted: true,
+      }),
+    }],
+  });
+
+  const bastionServiceAccount = cluster.addServiceAccount("BastionReadOnly", {
+    name : "bastion-read-only",
+    namespace: "some",
+  })
+
+  awsAuth.addRoleMapping(readOnlyHost.role, {
+    username: "system:serviceaccounts:" + bastionServiceAccount.serviceAccountNamespace + ":" + bastionServiceAccount.serviceAccountName,
+  })
+
+  
+  awsAuth.addRoleMapping
+  
+
+
+
+
+  const ReadWriteHost = new ec2.BastionHostLinux(stack, 'BastionHost', {
+    vpc: cluster.vpc,
+    blockDevices: [{
+      deviceName: cluster.clusterName + "read-write-bastion",
+      volume: ec2.BlockDeviceVolume.ebs(10, {
+        encrypted: true,
+      }),
+    }],
+  });
+}
+
+func ClusterArn(cluster: eks.Cl)
