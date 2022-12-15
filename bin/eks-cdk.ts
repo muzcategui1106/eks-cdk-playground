@@ -7,18 +7,19 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { BastionStack } from '../lib/bastion-stack'
 
 const app = new cdk.App();
-// new CdkEksFargateStack(app, 'EksCdkStack', {
-//   version: eks.KubernetesVersion.V1_21,
-//   clusterName: "uzcatm-cluster",
-//   env: {
-//     'account': "XXXXX",
-//     'region': "us-east-1"
-//   }
-// });
+new CdkEksFargateStack(app, 'EksCdkStack', {
+  version: eks.KubernetesVersion.V1_23,
+  clusterName: "uzcatm-cluster",
+  env: {
+    'account': "XXXXX",
+    'region': "us-east-1"
+  },
+  userNamespaces: ["d12345", "d6789"],
+});
 
 new BastionStack(app, 'BastionInstance', {
   env: {
-    'account': "XXXXXX",
+    'account': "633725053664",
     'region': "us-east-1"
   }
 });
