@@ -2,14 +2,14 @@
 
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as cdk from 'aws-cdk-lib';
-import {UserData} from 'aws-cdk-lib/aws-ec2';
-import { Role, ServicePrincipal, ManagedPolicy } from 'aws-cdk-lib/aws-iam'
+import { UserData } from 'aws-cdk-lib/aws-ec2';
+import * as iam from 'aws-cdk-lib/aws-iam'
 
 /**
  * Create my own Ec2 resource and Ec2 props as these are not yet defined in CDK
  * These classes abstract low level details from CloudFormation
  */
-class Ec2InstanceProps {}
+class Ec2InstanceProps { }
 
 export class BastionStack extends cdk.Stack {
     constructor(scope: cdk.App, id: string, props?: Ec2InstanceProps) {
@@ -24,16 +24,34 @@ export class BastionStack extends cdk.Stack {
         ssmaUserData.addCommands('yum install -y nginx', 'chkconfig nginx on', 'service nginx start');
 
         // define the IAM role that will allow the EC2 instance to communicate with SSM 
-        const role = new Role(this, 'BastionRole', {
-            assumedBy: new ServicePrincipal('ec2.amazonaws.com')
+        const role = new iam.Role(this, 'BastionRole', {
+            assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com')
         });
         // arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-        role.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));
+        role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));
+
+        role.addToPolicy(new iam.PolicyStatement({
+            sid: "AssumeAnyRoleForSimplicity",
+            effect: iam.Effect.ALLOW,
+            actions: ["sts:AssumeRole"],
+            resources: [
+                `arn:aws:iam::${this.account}:role/EksCdkStackEksCluster*`
+            ],
+        }))
+
+        role.addToPolicy(new iam.PolicyStatement({
+            sid: "EksActions",
+            effect: iam.Effect.ALLOW,
+            actions: ["eks:DescribeCluster"],
+            resources: [
+                `arn:aws:eks:us-east-1:${this.account}:cluster/*`,
+            ],
+        }))
 
         // create the instance
         new ec2.Instance(this, id, {
             instanceName: "eks-bastion",
-            vpc:  vpc,
+            vpc: vpc,
             vpcSubnets: {
                 subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
             },

@@ -51,7 +51,7 @@ export class CdkEksFargateStack extends cdk.Stack {
       new blueprints.SecretsStoreAddOn(),
       new blueprints.ClusterAutoScalerAddOn(),
       addArgocdAdmin(),
-      addArgocdUsers(),
+      //addArgocdUsers(),
     ]
 
 

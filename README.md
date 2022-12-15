@@ -32,3 +32,13 @@ TBD overview
     * logs
 * Remove inboud rule from default security group of the VPC otherwise EKS cluster wont be able to talk to vpc endpoints
     * add Inbound rule from anywhere within the VPC for port 443
+
+
+# To Figure out
+* how to protect the master role for the EKS cluster, at the moment any role within the account can assume the masterrole this is not ok
+* how to create 2 different instances of ArgoCD, at the moment, there seems to be collision 
+
+
+# what is verified to work
+* Cluster provisioning (connectivity is done through bastion host using SSM)
+* 
