@@ -34,11 +34,40 @@ TBD overview
     * add Inbound rule from anywhere within the VPC for port 443
 
 
+# Functionalities So Far
+
+* Audit logs
+    * Enabled
+    * Probably need something better to ingest them
+
+* ArgoCD installed in the cluster
+    * untested as I dont have real repos to test against
+    * a way to add app of apps model for 
+
+* cluster autoscaling
+    * nodes get created as workloads need them
+    * nodes get deleted as workloads do not need them anymore
+
+* GPU nodes
+    * with autoscaling as well????
+
+* EBS
+    * Enabled through EBS addon
+    * 
+* EFS
+    * TBD
+* Secret manager
+    * TBD
+* Automatic Certificates
+    * TBD
+
+
 # To Figure out
 * how to protect the master role for the EKS cluster, at the moment any role within the account can assume the masterrole this is not ok
 * how to create 2 different instances of ArgoCD, at the moment, there seems to be collision 
+* how to add an user namespace (probably will look at teams BluePrint construct). Create appprojects for each of the teams and manually apply manifest to it
 
 
 # what is verified to work
 * Cluster provisioning (connectivity is done through bastion host using SSM)
-* 
+* Basic cluster autoscaling

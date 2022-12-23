@@ -11,7 +11,7 @@ new CdkEksFargateStack(app, 'EksCdkStack', {
   version: eks.KubernetesVersion.V1_23,
   clusterName: "uzcatm-cluster",
   env: {
-    'account': "XXXXX",
+    'account': "633725053664",
     'region': "us-east-1"
   },
   userNamespaces: ["d12345", "d6789"],

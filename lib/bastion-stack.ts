@@ -53,7 +53,7 @@ export class BastionStack extends cdk.Stack {
             instanceName: "eks-bastion",
             vpc: vpc,
             vpcSubnets: {
-                subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
+                subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
             },
             instanceType: ec2.InstanceType.of(
                 ec2.InstanceClass.T3,

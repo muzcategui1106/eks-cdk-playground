@@ -19,6 +19,8 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as autoscaling from 'aws-cdk-lib/aws-autoscaling'
 import * as blueprints from '@aws-quickstart/eks-blueprints';
 import 'source-map-support/register';
+import { BillingMode } from 'aws-cdk-lib/aws-dynamodb';
+import { loadYaml } from '@aws-quickstart/eks-blueprints/dist/utils';
 
 export interface CdkEksFargateStackProps extends cdk.StackProps {
   version: eks.KubernetesVersion;
@@ -49,43 +51,38 @@ export class CdkEksFargateStack extends cdk.Stack {
 
     const addOns: Array<blueprints.ClusterAddOn> = [
       new blueprints.SecretsStoreAddOn(),
+      new blueprints.addons.MetricsServerAddOn(),
       new blueprints.ClusterAutoScalerAddOn(),
+      new blueprints.EbsCsiDriverAddOn(),
       addArgocdAdmin(),
-      //addArgocdUsers(),
     ]
 
-
-    const asgClusterProps: blueprints.AsgClusterProviderProps = {
-      version: props.version,
+    const clusterProviderProps = new blueprints.MngClusterProvider({
       clusterName: props.clusterName,
+      version: props.version,
       vpc: vpc,
       privateCluster: true,
-      vpcSubnets: [{ subnetType: ec2.SubnetType.PRIVATE_ISOLATED }], // you can also specify the subnets by other attributes
+      vpcSubnets: [{ subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS }], // you can also specify the subnets by other attributes
       outputClusterName: true,
       outputConfigCommand: true,
 
-      // autoscaling parameters
-      id: "general-workers",
+      id: props.clusterName + "-general-workers",
       minSize: 1,
-      maxSize: 50,
-      desiredSize: 4,
-      instanceType: new ec2.InstanceType('m5.large'),
-      machineImageType: eks.MachineImageType.AMAZON_LINUX_2,
-      updatePolicy: autoscaling.UpdatePolicy.rollingUpdate(),
-    }
-    const clusterProvider = new blueprints.AsgClusterProvider(asgClusterProps)
+      maxSize: 10,
+      desiredSize: 1,
+    })
+
+    // const clusterProvider = new blueprints.AsgClusterProvider(asgClusterProps)
 
     const bluePrint = blueprints.EksBlueprint.builder()
       .account(this.account)
       .region(this.region)
+      .clusterProvider(clusterProviderProps)
       .addOns(...addOns)
-      .clusterProvider(clusterProvider)
+      .enableControlPlaneLogTypes(blueprints.ControlPlaneLogType.API, blueprints.ControlPlaneLogType.AUDIT, blueprints.ControlPlaneLogType.AUTHENTICATOR, blueprints.ControlPlaneLogType.CONTROLLER_MANAGER, blueprints.ControlPlaneLogType.SCHEDULER)
       .build(this, 'EksCluster');
     
-    const cluster = bluePrint.getClusterInfo().cluster
-
-
-    //addBastionHosts(this, cluster)
+    const cluster = bluePrint.getClusterInfo().cluster 
 
     // manage security groups for cluster and workers
     // remove the ingress security rule for port 443. only there for experimentation
@@ -133,27 +130,17 @@ function addNamespace(stack: cdk.Stack, cluster: eks.ICluster, namespaceName: st
 
 
 function addArgocdAdmin(): blueprints.ClusterAddOn {
-  return new blueprints.ArgoCDAddOn()
-}
-
-function addArgocdUsers(): blueprints.ClusterAddOn {
-  const repoUrl = 'https://github.com/argoproj/argocd-example-apps.git'
-  
-  const bootstrapRepo: blueprints.ApplicationRepository = {
-      repoUrl,
+  return new blueprints.ArgoCDAddOn({
+    bootstrapRepo: {
+      repoUrl: 'https://github.com/muzcategui1106/eks-cdk-playground.git',
+      path: 'apps',
+      targetRevision: "main",
   }
-  
-  const devBootstrapArgo = new blueprints.ArgoCDAddOn({
-      bootstrapRepo: {
-          ...bootstrapRepo,
-          path: 'guestbook',
-          targetRevision: "master"
-      },
-      namespace: "argocd-users",
-  });
+  })
 
+  // we can use the next lines to bootstrap apps of apps for required default addons that come on the cluster
 
-  return devBootstrapArgo
+  // we can add individual applications for optional addons the user wants from a curated list
 }
 
 // function addFargateConfig() {
