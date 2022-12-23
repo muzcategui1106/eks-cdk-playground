@@ -130,7 +130,7 @@ function addNamespace(stack: cdk.Stack, cluster: eks.ICluster, namespaceName: st
 
 
 function addArgocdAdmin(): blueprints.ClusterAddOn {
-  return new blueprints.ArgoCDAddOn({
+  const addon =  new blueprints.ArgoCDAddOn({
     bootstrapRepo: {
       repoUrl: 'https://github.com/muzcategui1106/eks-cdk-playground.git',
       path: 'helm-apps-of-apps',
@@ -138,6 +138,7 @@ function addArgocdAdmin(): blueprints.ClusterAddOn {
   }
   })
 
+  return addon
   // we can use the next lines to bootstrap apps of apps for required default addons that come on the cluster
 
   // we can add individual applications for optional addons the user wants from a curated list
