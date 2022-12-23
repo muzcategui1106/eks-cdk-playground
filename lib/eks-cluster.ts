@@ -133,7 +133,7 @@ function addArgocdAdmin(): blueprints.ClusterAddOn {
   return new blueprints.ArgoCDAddOn({
     bootstrapRepo: {
       repoUrl: 'https://github.com/muzcategui1106/eks-cdk-playground.git',
-      path: 'apps',
+      path: 'helm-apps-of-apps',
       targetRevision: "main",
   }
   })
