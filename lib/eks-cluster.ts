@@ -84,6 +84,15 @@ export class CdkEksFargateStack extends cdk.Stack {
     
     const cluster = bluePrint.getClusterInfo().cluster 
 
+    clusterProviderProps.addManagedNodeGroup(cluster, {
+      id: "gpu-workers",
+      minSize: 0,
+      maxSize: 10, 
+      desiredSize: 0,
+      instanceTypes: [new ec2.InstanceType('p3.2xlarge')]
+
+    })
+
     // manage security groups for cluster and workers
     // remove the ingress security rule for port 443. only there for experimentation
     cluster.clusterSecurityGroup.addIngressRule(ec2.Peer.ipv4(cluster.vpc.vpcCidrBlock), ec2.Port.tcp(443), "connectivity from other things running in the cluster")

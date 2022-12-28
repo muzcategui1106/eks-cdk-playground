@@ -48,7 +48,7 @@ TBD overview
     * nodes get deleted as workloads do not need them anymore
 
 * GPU nodes
-    * with autoscaling as well????
+    * added autoscaling managed group for gpu nodes
 
 * EBS
     * Enabled through EBS addon
