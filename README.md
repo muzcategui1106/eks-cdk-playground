@@ -53,8 +53,12 @@ TBD overview
 * EBS
     * Enabled through EBS addon
     * deployed storage class throdugh argocd 
+    * Created PVC that uses EBS storage class
+    * Created pod that uses PVC
 * EFS
-    * TBD
+    * EFS volume and access points created through CDK
+    * Added EFS addon to cluster
+    * Added storage class through static manifest in CDK to use access point created via CDK 
 * Secret manager
     * TBD
 * Automatic Certificates
