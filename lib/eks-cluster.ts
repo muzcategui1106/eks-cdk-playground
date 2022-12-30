@@ -15,12 +15,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as eks from 'aws-cdk-lib/aws-eks';
-import * as iam from 'aws-cdk-lib/aws-iam';
-import * as autoscaling from 'aws-cdk-lib/aws-autoscaling'
 import * as blueprints from '@aws-quickstart/eks-blueprints';
-import 'source-map-support/register';
-import { BillingMode } from 'aws-cdk-lib/aws-dynamodb';
-import { loadYaml } from '@aws-quickstart/eks-blueprints/dist/utils';
+import * as efs from 'aws-cdk-lib/aws-efs';
 
 export interface CdkEksFargateStackProps extends cdk.StackProps {
   version: eks.KubernetesVersion;
@@ -54,6 +50,7 @@ export class CdkEksFargateStack extends cdk.Stack {
       new blueprints.addons.MetricsServerAddOn(),
       new blueprints.ClusterAutoScalerAddOn(),
       new blueprints.EbsCsiDriverAddOn(),
+      new blueprints.addons.EfsCsiDriverAddOn(),
       addArgocdAdmin(),
     ]
 
@@ -92,6 +89,8 @@ export class CdkEksFargateStack extends cdk.Stack {
       instanceTypes: [new ec2.InstanceType('p3.2xlarge')]
 
     })
+
+    addEFSVolume(this, cluster)
 
     // manage security groups for cluster and workers
     // remove the ingress security rule for port 443. only there for experimentation
@@ -151,6 +150,17 @@ function addArgocdAdmin(): blueprints.ClusterAddOn {
   // we can use the next lines to bootstrap apps of apps for required default addons that come on the cluster
 
   // we can add individual applications for optional addons the user wants from a curated list
+}
+
+function addEFSVolume(stack: cdk.Stack, cluster: eks.ICluster): efs.AccessPoint{
+  const fileSystem = new efs.FileSystem(stack, `CluusterEFSVolume`, {
+    vpc: cluster.vpc,
+    lifecyclePolicy: efs.LifecyclePolicy.AFTER_14_DAYS, // files are not transitioned to infrequent access (IA) storage by default
+    performanceMode: efs.PerformanceMode.GENERAL_PURPOSE, // default
+    outOfInfrequentAccessPolicy: efs.OutOfInfrequentAccessPolicy.AFTER_1_ACCESS, // files are not transitioned back from (infrequent access) IA to primary storage by default
+  });
+
+  return fileSystem.addAccessPoint("ClusterAccessPoint")
 }
 
 // function addFargateConfig() {
